@@ -4,7 +4,7 @@ import sys
 
 
 class WebSky:
-    """class for dark matter halo catalogues
+    """class for websky maps and dark matter halo catalogues
 
     Parameters
     ----------
@@ -20,7 +20,7 @@ class WebSky:
     """
 
     def __init__(self, 
-                 directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/'
+                 directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/',
                  halo_catalogue = 'halos.pksc',
                  kappa_map_name = 'kappa.fits',
                  comptony_map_name = 'compton-y.fits',
@@ -80,7 +80,7 @@ class WebSky:
         return halodata
 
 
-    def cib_map_file_name(self, freq='545', websky_version='1'):
+    def cib_map_file_name(self, freq='545', websky_version='0'):
         """get file name of cib map, given a frequency
 
         Parameters
@@ -97,6 +97,31 @@ class WebSky:
         cib_file_name : str
             name of cib file at given frequency
         """
+        cib_file_name = 'cib-'+str(freq)+'GHZ_v'+str(websky_version)+'.fits'
+        return self.directory_path+'v'+str(websky_version)+'/'
+
+    def kappa_map_file_name(self, websky_version='0'):
+        """get file name of kappa map
+
+        Returns
+        -------
+
+        kappa_file_name : str
+            name of kappa map file 
+        """
+        return self.directory_path+'v'+str(websky_version)+'/'self.kappa_map_name
+
+
+    def comptony_map_file_name(self, websky_version='0'):
+        """get file name of compton-y map
+
+        Returns
+        -------
+
+        comptony_file_name : str
+            name of compton-y map file 
+        """
         
-        return 'cib-'+str(freq)+'GHZ_v'+str(websky_version)+'.fits'
+        return self.directory_path+'v'+str(websky_version)+'/'self.comptony_map_name
+
 

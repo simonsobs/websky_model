@@ -20,7 +20,7 @@ class WebSky:
     """
 
     def __init__(self, 
-                 directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/'
+                 directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/',
                  halo_catalogue = 'halos.pksc',
                  kappa_map_name = 'kappa.fits',
                  comptony_map_name = 'compton-y.fits',
@@ -98,5 +98,5 @@ class WebSky:
             name of cib file at given frequency
         """
         
-        return 'cib-'+str(freq)+'GHZ_v'+str(websky_version)+'.fits'
+        return self.directory_path+'cib-'+str(freq)+'GHZ_v'+str(websky_version)+'.fits'
 

@@ -20,7 +20,8 @@ class WebSky:
     """
 
     def __init__(self, 
-                 directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/',
+                 directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/v0/',
+                 websky_version = 'v0'
                  halo_catalogue = 'halos.pksc',
                  kappa_map_name = 'kappa.fits',
                  comptony_map_name = 'compton-y.fits',
@@ -31,6 +32,7 @@ class WebSky:
 
 
         self.directory_path = directory_path 
+        self.websky_version = websky_version 
         self.halo_catalogue = halo_catalogue
         self.websky_cosmo   = websky_cosmo
         self.verbose        = verbose
@@ -80,7 +82,7 @@ class WebSky:
         return halodata
 
 
-    def cib_map_file_name(self, freq='545', websky_version='0'):
+    def cib_map_file_name(self, freq='545'):
         """get file name of cib map, given a frequency
 
         Parameters
@@ -88,8 +90,6 @@ class WebSky:
 
         freq : str or int
             frequency of desired map in GHz
-        websky_version : str or int
-            version of websky map
 
         Returns
         -------
@@ -97,10 +97,12 @@ class WebSky:
         cib_file_name : str
             name of cib file at given frequency
         """
-        cib_file_name = 'cib-'+str(freq)+'GHZ_v'+str(websky_version)+'.fits'
-        return self.directory_path+'v'+str(websky_version)+'/'+cib_file_name
 
-    def kappa_map_file_name(self, websky_version='0'):
+        cib_file_name = 'cib-'+str(freq)+'GHZ_v'+str(websky_version)+'.fits'
+
+        return self.directory_path+self.websky_version+'/'+cib_file_name
+
+    def kappa_map_file_name(self):
         """get file name of kappa map
 
         Returns
@@ -109,10 +111,11 @@ class WebSky:
         kappa_file_name : str
             name of kappa map file 
         """
-        return self.directory_path+'v'+str(websky_version)+'/'+self.kappa_map_name
+
+        return self.directory_path+self.websky_version+'/'+self.kappa_map_name
 
 
-    def comptony_map_file_name(self, websky_version='0'):
+    def comptony_map_file_name(self):
         """get file name of compton-y map
 
         Returns
@@ -122,6 +125,6 @@ class WebSky:
             name of compton-y map file 
         """
         
-        return self.directory_path+'v'+str(websky_version)+'/'+self.comptony_map_name
+        return self.directory_path+self.websky_version+'/'+self.comptony_map_name
 
 

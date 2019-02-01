@@ -98,7 +98,7 @@ class WebSky:
             name of cib file at given frequency
         """
         cib_file_name = 'cib-'+str(freq)+'GHZ_v'+str(websky_version)+'.fits'
-        return self.directory_path+'v'+str(websky_version)+'/'
+        return self.directory_path+'v'+str(websky_version)+'/'+cib_file_name
 
     def kappa_map_file_name(self, websky_version='0'):
         """get file name of kappa map
@@ -109,7 +109,7 @@ class WebSky:
         kappa_file_name : str
             name of kappa map file 
         """
-        return self.directory_path+'v'+str(websky_version)+'/'self.kappa_map_name
+        return self.directory_path+'v'+str(websky_version)+'/'+self.kappa_map_name
 
 
     def comptony_map_file_name(self, websky_version='0'):
@@ -122,6 +122,6 @@ class WebSky:
             name of compton-y map file 
         """
         
-        return self.directory_path+'v'+str(websky_version)+'/'self.comptony_map_name
+        return self.directory_path+'v'+str(websky_version)+'/'+self.comptony_map_name
 
 

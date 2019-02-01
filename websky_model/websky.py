@@ -20,7 +20,7 @@ class WebSky:
     """
 
     def __init__(self, 
-                 directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/data/v0/',
+                 directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/data/',
                  websky_version = 'v0',
                  halo_catalogue = 'halos.pksc',
                  kappa_map_name = 'kappa.fits',
@@ -34,6 +34,8 @@ class WebSky:
         self.directory_path = directory_path 
         self.websky_version = websky_version 
         self.halo_catalogue = halo_catalogue
+        self.kappa_map_name = kappa_map_name
+        self.comptony_map_name = comptony_map_name
         self.websky_cosmo   = websky_cosmo
         self.verbose        = verbose
 
@@ -50,7 +52,7 @@ class WebSky:
         """
 
         rho_mean = 2.775e11 * self.websky_cosmo['Omega_M'] * self.websky_cosmo['h']**2
-        halo_catalogue_file = open(self.directory_path+self.halo_catalogue,"rb")
+        halo_catalogue_file = open(self.directory_path+self.websky_version+'/'+self.halo_catalogue,"rb")
         
         # load catalogue header
         Nhalo            = np.fromfile(halo_catalogue_file, dtype=np.int32, count=1)[0]
@@ -125,10 +127,6 @@ class WebSky:
             name of compton-y map file 
         """
         
-<<<<<<< HEAD
-        return self.directory_path+'cib-'+str(freq)+'GHZ_v'+str(websky_version)+'.fits'
-=======
         return self.directory_path+self.websky_version+'/'+self.comptony_map_name
 
->>>>>>> fd3c33418bd1792217e0d5ddd4543e4f33ea02fb
 

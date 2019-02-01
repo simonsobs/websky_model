@@ -98,7 +98,7 @@ class WebSky:
             name of cib file at given frequency
         """
 
-        cib_file_name = 'cib-'+str(freq)+'GHZ_v'+str(websky_version)+'.fits'
+        cib_file_name = 'cib-'+str(freq)+'GHZ_'+self.websky_version+'.fits'
 
         return self.directory_path+self.websky_version+'/'+cib_file_name
 

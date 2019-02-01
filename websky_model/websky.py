@@ -21,7 +21,7 @@ class WebSky:
 
     def __init__(self, 
                  directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/v0/',
-                 websky_version = 'v0'
+                 websky_version = 'v0',
                  halo_catalogue = 'halos.pksc',
                  kappa_map_name = 'kappa.fits',
                  comptony_map_name = 'compton-y.fits',

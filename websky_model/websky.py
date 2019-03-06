@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
+import healpy as hp
 import sys
-
 
 class WebSky:
     """class for websky maps and dark matter halo catalogues
@@ -39,26 +39,37 @@ class WebSky:
         self.websky_cosmo   = websky_cosmo
         self.verbose        = verbose
 
-    def load_halo_catalogue(self, mmin=1e0, mmax=1e30, rmin=0., rmax=14.e3):
+    def import_astropy(self):
+        """load in astropy. Only used if comoving distance to redshift calculations required
+        """
+
+        from astropy.cosmology import FlatLambdaCDM, z_at_value
+        import astropy.units as u
+
+        self.astropy_cosmo = FlatLambdaCDM(H0=self.websky_cosmo['h']*100, Om0=self.websky_cosmo['Omega_M'])
+
+
+    def load_halo_catalogue(self, mmin=0., mmax=np.inf, zmin=0., zmax=np.inf, rmin=0., rmax=np.inf):
         """load in peak patch dark matter halo catalogue
+
+        Requires astropy if using distance to redshift calculations, or redshift cuts
 
         Returns
         -------
 
-        halodata : np.array((10, Nhalo)
+        halodata : np.array((Nhalo, 10))
             numpy array of halo information, 10 floats per halo
             x [Mpc], y [Mpc], z [Mpc], vx [km/s], vy [km/s], vz [km/s], 
             M [M_sun (M_200,m)], x_lag [Mpc], y_lag [Mpc], z_lag [Mpc]
         """
 
-        rho_mean = 2.775e11 * self.websky_cosmo['Omega_M'] * self.websky_cosmo['h']**2
         halo_catalogue_file = open(self.directory_path+self.websky_version+'/'+self.halo_catalogue,"rb")
         
         # load catalogue header
         Nhalo            = np.fromfile(halo_catalogue_file, dtype=np.int32, count=1)[0]
         RTHMAXin         = np.fromfile(halo_catalogue_file, dtype=np.float32, count=1)
         redshiftbox      = np.fromfile(halo_catalogue_file, dtype=np.float32, count=1)
-        if self.verbose: print("\nNhalo = ", Nhalo)
+        if self.verbose: print("\nNumber of Halos in full catalogue %d \n " % Nhalo)
 
         nfloats_perhalo = 10
         npkdata         = nfloats_perhalo*Nhalo
@@ -68,21 +79,82 @@ class WebSky:
         halodata        = np.reshape(halodata,(Nhalo,nfloats_perhalo))
 
         # change from R_th to halo mass (M_200,M)
+        rho_mean = 2.775e11 * self.websky_cosmo['Omega_M'] * self.websky_cosmo['h']**2
         halodata[:,6]   = 4.0/3*np.pi * halodata[:,6]**3 * rho_mean        
         
         # cut mass range
-        dm = [ (halodata[:,6] > mmin) & (halodata[:,6] < mmax)]
-        halodata = halodata[dm]
+        if mmin > 0 or mmax < np.inf:
+            dm = [ (halodata[:,6] > mmin) & (halodata[:,6] < mmax)]
+            halodata = halodata[dm]
+
+        # cut redshift range
+        if zmin > 0 or zmax < np.inf:
+            self.import_astropy()
+            rofzmin = self.astropy_cosmo.comoving_distance(zmin).value
+            rofzmax = self.astropy_cosmo.comoving_distance(zmax).value
+
+            rpp = halodata[:,0]**2 + halodata[:,1]**2 + halodata[:,2]**2
+
+            dm = [ (rpp > rofzmin**2) & (rpp < rofzmax**2)]
+            halodata = halodata[dm]
 
         # cut distance range
-        rpp = halodata[:,0]**2 + halodata[:,1]**2 + halodata[:,2]**2
-        dm = [ (rpp > rmin**2) & (rpp < rmax**2)]
-        halodata = halodata[dm]
+        if rmin > 0 or rmax < np.inf:
+            rpp = halodata[:,0]**2 + halodata[:,1]**2 + halodata[:,2]**2
 
-        if self.verbose: print("halo catalogue loaded: min, max mass /1e12 = ", np.min(halodata[:,6])/1e12, np.max(halodata[:,6])/1e12 )
-        
+            dm = [ (rpp > rmin**2) & (rpp < rmax**2)]
+            halodata = halodata[dm]
+
+        Nhalo = halodata.shape[0]
+
+        if self.verbose: 
+            # write out halo catalogue information
+            print("Halo catalogue after cuts: np.array((Nhalo=%d, floats_per_halo=10)), containing:\n" % Nhalo)
+            print("0:x [Mpc], 1:y [Mpc], 2:z [Mpc], 3:vx [km/s], 4:vy [km/s], 5:vz [km/s],\n"+ 
+                  "6:M [M_sun (M_200,m)], 7:x_lag [Mpc], 8:y_lag [Mpc], 9:z_lag [Mpc]\n")
+
         return halodata
 
+
+    def catalogue_to_map(self, halodata, nside=512, weight=1):
+        """project halos into healpix map of size nside
+
+        Parameters
+        ----------
+
+        halodata : array
+            halo catalogue of size (Nhalo, 10)
+        nside: int
+            healpix nside of map created
+        weight: str
+            weighting to give halos when adding to map
+            possibilities: 1=number density, or array of size Nhalo for custom (e.g. mass) 
+
+        Returns
+        -------
+
+        map : np.array( (12 * nside**2))
+            healpy map of halos, with "flux" proportional to weight
+
+        """
+        # create empty healpy map
+        map = np.zeros(hp.nside2npix(nside))
+        
+        # check if weight is a constant
+        constant_weight = isinstance(weight, (int, float)) 
+        # loop over all halos in catalogue
+
+        pix = hp.vec2pix(nside, halodata[:,0], halodata[:,1], halodata[:,2])
+
+        for i in range(halodata.shape[0]):
+
+            # add flux to map
+            if constant_weight:
+                map[pix[i]] += weight
+            else: 
+                map[pix[i]] += weight[i]
+
+        return map
 
     def cib_map_file_name(self, freq='545'):
         """get file name of cib map, given a frequency

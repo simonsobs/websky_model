@@ -106,14 +106,14 @@ class WebSky:
 
             rpp =  np.sqrt( np.sum(halodata[:,:3]**2, axis=1))
 
-            dm = tuple([ (rpp > rofzmin**2) & (rpp < rofzmax**2)])
+            dm = tuple([ (rpp > rofzmin) & (rpp < rofzmax)])
             halodata = halodata[dm]
 
         # cut distance range
         if rmin > 0 or rmax < np.inf:
-            rpp =  np.sqrt( np.sum(halodata[:,:3]**2, axis=1))
+            rpp =  np.sqrt(np.sum(halodata[:,:3]**2, axis=1))
 
-            dm = tuple([ (rpp > rmin**2) & (rpp < rmax**2)])
+            dm = tuple([ (rpp > rmin) & (rpp < rmax)])
             halodata = halodata[dm]
 
 

@@ -149,7 +149,6 @@ class WebSky:
         # loop over all halos in catalogue and add flux to map
         for i in range(halodata.shape[0]):
 
-            # add flux to map
             if constant_weight:
                 map[pix[i]] += weight
             else: 

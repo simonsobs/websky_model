@@ -1,16 +1,17 @@
 # Websky Models
 
-websky_models is a Python library for dealing with websky maps and halo catalogues
+websky_models is a python library for dealing with websky maps and halo catalogues
 
-Some functionalities require astropy. It is only used if comoving distance to redshift calculations required for halo catalogue (if zmin/zmax are used for halo catalogue, or practical=True). Should work without astropy installed if not using these.
+Some functionalities require healpy or astropy. astropy is only used if comoving distance to redshift calculations required for halo catalogue (if zmin/zmax are used for halo catalogue, or practical=True). Should work without astropy installed if not using these.
 
 ## Usage
 
 ```python
+import numpy as np
 import websky_model as wm
 
 # load model
-wmodel = wm.WebSky(directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/data/',websky_version = 'v0', verbose=True)
+wmodel = wm.WebSky(directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/data/',websky_version = 'v0.1', verbose=True)
 
 # read in halo catalogue
 hcat  = wmodel.load_halo_catalogue(mmin=0, mmax=np.inf, zmin=0, zmax=np.inf, rmin=0., rmax=np.inf, practical=True)

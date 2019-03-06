@@ -46,10 +46,11 @@ class WebSky:
         from astropy.cosmology import FlatLambdaCDM, z_at_value
         import astropy.units as u
 
+        self.z_at_value = z_at_value
+        self.u = u
         self.astropy_cosmo = FlatLambdaCDM(H0=self.websky_cosmo['h']*100, Om0=self.websky_cosmo['Omega_M'])
 
-
-    def load_halo_catalogue(self, mmin=0., mmax=np.inf, zmin=0., zmax=np.inf, rmin=0., rmax=np.inf):
+    def load_halo_catalogue(self, mmin=0., mmax=np.inf, zmin=0., zmax=np.inf, rmin=0., rmax=np.inf, practical=True):
         """load in peak patch dark matter halo catalogue
 
         Requires astropy if using distance to redshift calculations, or redshift cuts
@@ -57,10 +58,20 @@ class WebSky:
         Returns
         -------
 
-        halodata : np.array((Nhalo, 10))
+        if practical==True: only generally useful information (including redshifts)
+        halodata : np.array((Nhalo, 8))
             numpy array of halo information, 10 floats per halo
             x [Mpc], y [Mpc], z [Mpc], vx [km/s], vy [km/s], vz [km/s], 
-            M [M_sun (M_200,m)], x_lag [Mpc], y_lag [Mpc], z_lag [Mpc]
+            M [M_sun (M_200,m)], redshift (v_pec not included)
+
+        if practical==False: returns everything in halo catalogue
+        halodata : np.array((Nhalo, 10+))
+            numpy array of halo information, 10 floats per halo
+            x [Mpc], y [Mpc], z [Mpc], vx [km/s], vy [km/s], vz [km/s], 
+            M [M_sun (M_200,m)], x_lag [Mpc], y_lag [Mpc], z_lag [Mpc], ...
+
+
+
         """
 
         halo_catalogue_file = open(self.directory_path+self.websky_version+'/'+self.halo_catalogue,"rb")
@@ -80,11 +91,11 @@ class WebSky:
 
         # change from R_th to halo mass (M_200,M)
         rho_mean = 2.775e11 * self.websky_cosmo['Omega_M'] * self.websky_cosmo['h']**2
-        halodata[:,6]   = 4.0/3*np.pi * halodata[:,6]**3 * rho_mean        
+        halodata[:,6] = 4.0/3*np.pi * halodata[:,6]**3 * rho_mean        
         
         # cut mass range
         if mmin > 0 or mmax < np.inf:
-            dm = [ (halodata[:,6] > mmin) & (halodata[:,6] < mmax)]
+            dm = tuple([ (halodata[:,6] > mmin) & (halodata[:,6] < mmax)])
             halodata = halodata[dm]
 
         # cut redshift range
@@ -93,25 +104,49 @@ class WebSky:
             rofzmin = self.astropy_cosmo.comoving_distance(zmin).value
             rofzmax = self.astropy_cosmo.comoving_distance(zmax).value
 
-            rpp = halodata[:,0]**2 + halodata[:,1]**2 + halodata[:,2]**2
+            rpp =  np.sqrt( np.sum(halodata[:,:3]**2, axis=1))
 
-            dm = [ (rpp > rofzmin**2) & (rpp < rofzmax**2)]
+            dm = tuple([ (rpp > rofzmin**2) & (rpp < rofzmax**2)])
             halodata = halodata[dm]
 
         # cut distance range
         if rmin > 0 or rmax < np.inf:
-            rpp = halodata[:,0]**2 + halodata[:,1]**2 + halodata[:,2]**2
+            rpp =  np.sqrt( np.sum(halodata[:,:3]**2, axis=1))
 
-            dm = [ (rpp > rmin**2) & (rpp < rmax**2)]
+            dm = tuple([ (rpp > rmin**2) & (rpp < rmax**2)])
             halodata = halodata[dm]
 
-        Nhalo = halodata.shape[0]
 
+        # get halo redshifts and crop all non practical information
+        if practical:
+            self.import_astropy()
+
+            # set up comoving distance to redshift interpolation table
+            rpp =  np.sqrt( np.sum(halodata[:,:3]**2, axis=1))
+
+            zminh = self.z_at_value(self.astropy_cosmo.comoving_distance, rpp.min()*self.u.Mpc)
+            zmaxh = self.z_at_value(self.astropy_cosmo.comoving_distance, rpp.max()*self.u.Mpc)
+            zgrid = np.linspace(zminh, zmaxh, 10000)
+            dgrid = self.astropy_cosmo.comoving_distance(zgrid).value
+            
+            # first replace 7th column with redshift
+            halodata[:,7] = np.interp(rpp, dgrid, zgrid)
+            
+            # crop un-practical halo information
+            halodata = halodata[:,:8]
+
+        Nhalo = halodata.shape[0] 
+        Nfloat_perhalo = halodata.shape[1]
+
+        # write out halo catalogue information
         if self.verbose: 
-            # write out halo catalogue information
-            print("Halo catalogue after cuts: np.array((Nhalo=%d, floats_per_halo=10)), containing:\n" % Nhalo)
-            print("0:x [Mpc], 1:y [Mpc], 2:z [Mpc], 3:vx [km/s], 4:vy [km/s], 5:vz [km/s],\n"+ 
-                  "6:M [M_sun (M_200,m)], 7:x_lag [Mpc], 8:y_lag [Mpc], 9:z_lag [Mpc]\n")
+            print("Halo catalogue after cuts: np.array((Nhalo=%d, floats_per_halo=%d)), containing:\n" % (Nhalo, Nfloat_perhalo))
+            if practical:
+                print("0:x [Mpc], 1:y [Mpc], 2:z [Mpc], 3:vx [km/s], 4:vy [km/s], 5:vz [km/s],\n"+ 
+                      "6:M [M_sun (M_200,m)], 7:redshift(chi_halo) \n")
+            else:
+                print("0:x [Mpc], 1:y [Mpc], 2:z [Mpc], 3:vx [km/s], 4:vy [km/s], 5:vz [km/s],\n"+ 
+                      "6:M [M_sun (M_200,m)], 7:x_lag [Mpc], 8:y_lag [Mpc], 9:z_lag [Mpc]\n")
 
         return halodata
 

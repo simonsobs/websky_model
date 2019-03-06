@@ -175,19 +175,11 @@ class WebSky:
         # create empty healpy map
         map = np.zeros(hp.nside2npix(nside))
         
-        # check if weight is a constant
-        constant_weight = isinstance(weight, (int, float)) 
-
         # get pixel id from halo x,y,z vector
         pix = hp.vec2pix(nside, halodata[:,0], halodata[:,1], halodata[:,2])
 
-        # loop over all halos in catalogue and add flux to map
-        for i in range(halodata.shape[0]):
-
-            if constant_weight:
-                map[pix[i]] += weight
-            else: 
-                map[pix[i]] += weight[i]
+        # add flux to map 
+        np.add.at(map, pix, weight)
 
         return map
 

@@ -15,7 +15,7 @@ wmodel = wm.WebSky(directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/
 hcat  = wmodel.load_halo_catalogue(mmin=0, mmax=np.inf, zmin=0, zmax=np.inf, rmin=0., rmax=np.inf)
 
 # project halos onto healpix map. 
-# Each halo is given a "flux" of weight=constant, or weight=array(len(Nhalo))
+# each halo is given a "flux" of weight=constant, or weight=array(len(Nhalo))
 hpmap = wmodel.catalogue_to_map(hcat, nside=512, weight=1)
 
 # get cib map filename

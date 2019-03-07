@@ -95,7 +95,7 @@ class WebSky:
         
         # cut mass range
         if mmin > 0 or mmax < np.inf:
-            dm = tuple([ (halodata[:,6] > mmin) & (halodata[:,6] < mmax)])
+            dm = (halodata[:,6] > mmin) & (halodata[:,6] < mmax) 
             halodata = halodata[dm]
 
         # cut redshift range
@@ -106,14 +106,14 @@ class WebSky:
 
             rpp =  np.sqrt( np.sum(halodata[:,:3]**2, axis=1))
 
-            dm = tuple([ (rpp > rofzmin) & (rpp < rofzmax)])
+            dm = (rpp > rofzmin) & (rpp < rofzmax) 
             halodata = halodata[dm]
 
         # cut distance range
         if rmin > 0 or rmax < np.inf:
             rpp =  np.sqrt(np.sum(halodata[:,:3]**2, axis=1))
 
-            dm = tuple([ (rpp > rmin) & (rpp < rmax)])
+            dm = (rpp > rmin) & (rpp < rmax) 
             halodata = halodata[dm]
 
 

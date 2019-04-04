@@ -20,11 +20,12 @@ class WebSky:
     """
 
     def __init__(self, 
-                 directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/data/v0/',
-                 websky_version = 'v0',
+                 directory_path='/global/project/projectdirs/sobs/v4_sims/mbs/websky/data/',
+                 websky_version = 'v0.3',
                  halo_catalogue = 'halos.pksc',
-                 kappa_map_name = 'kappa.fits',
-                 comptony_map_name = 'compton-y.fits',
+                 kappa_map_name = 'kap.fits',
+                 comptony_map_name = 'tsz.fits',
+                 ksz_map_name = 'ksz.fits',
                  websky_cosmo = {'Omega_M': 0.31, 'Omega_B': 0.049, 'Omega_L': 0.69, 
                                  'h': 0.68, 'sigma_8': 0.81, 'n_s':0.965},
                  verbose = True
@@ -36,6 +37,9 @@ class WebSky:
         self.halo_catalogue = halo_catalogue
         self.websky_cosmo   = websky_cosmo
         self.verbose        = verbose
+        self.kappa_map_name = kappa_map_name
+        self.comptony_map_name = comptony_map_name
+        self.ksz_map_name = ksz_map_name
 
     def load_halo_catalogue(self, mmin=1e0, mmax=1e30, rmin=0., rmax=14.e3):
         """load in peak patch dark matter halo catalogue
@@ -98,7 +102,7 @@ class WebSky:
             name of cib file at given frequency
         """
 
-        cib_file_name = 'cib-'+str(freq)+'GHZ_'+self.websky_version+'.fits'
+        cib_file_name = 'cib_'+str(freq).zfill(4)+ '.fits'
 
         return self.directory_path+self.websky_version+'/'+cib_file_name
 
@@ -125,10 +129,18 @@ class WebSky:
             name of compton-y map file 
         """
         
-<<<<<<< HEAD
-        return self.directory_path+'cib-'+str(freq)+'GHZ_v'+str(websky_version)+'.fits'
-=======
         return self.directory_path+self.websky_version+'/'+self.comptony_map_name
 
->>>>>>> fd3c33418bd1792217e0d5ddd4543e4f33ea02fb
+
+    def ksz_map_file_name(self):
+        """get file name of ksz map
+
+        Returns
+        -------
+
+        ksz_file_name : str
+            name of ksz map file 
+        """
+        
+        return self.directory_path+self.websky_version+'/'+self.ksz_map_name
 

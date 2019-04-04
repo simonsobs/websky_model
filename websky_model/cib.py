@@ -10,7 +10,6 @@ class WebSkyCIB(InterpolatingComponent):
                                     False, pixel_indices,
                                     mpi_comm, verbose)
 
-
     def get_filenames(self,path):
         # Override this to implement name convention
         ws = websky.WebSky(path)

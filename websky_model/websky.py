@@ -79,9 +79,8 @@ class WebSky:
         halo_catalogue_file = open(self.directory_path+self.websky_version+'/'+self.halo_catalogue,"rb")
         
         # load catalogue header
-        if Nmax is None:
-            Nhalo            = np.fromfile(halo_catalogue_file, dtype=np.int32, count=1)[0]
-        else:
+        Nhalo            = np.fromfile(halo_catalogue_file, dtype=np.int32, count=1)[0]
+        if not(Nmax is None):
             Nhalo = int(Nmax)
         RTHMAXin         = np.fromfile(halo_catalogue_file, dtype=np.float32, count=1)
         redshiftbox      = np.fromfile(halo_catalogue_file, dtype=np.float32, count=1)

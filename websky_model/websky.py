@@ -216,6 +216,29 @@ class WebSky:
 
 
 def vrad(halodata):
+    """Get array of radial velocities in km/sec from halo catalogue
+
+    Parameters
+    ----------
+
+    halodata : array
+        halo catalogue of size (Nhalo, Ncol) where Ncol is at least 6
+        The columns should correspond to
+        0:x [Mpc], 1:y [Mpc], 2:z [Mpc], 3:vx [km/s], 4:vy [km/s], 5:vz [km/s]
+    nside: int
+        healpix nside of map created
+    weight: str
+        weighting to give halos when adding to map
+        possibilities: 1=number density, or array of size Nhalo for custom (e.g. mass) 
+
+    Returns
+    -------
+
+    vrad : np.array( Nhalo,)
+        Array of radial velocities in km/sec
+
+    """
+
     x  = halodata[:,0];  y = halodata[:,1];  z = halodata[:,2] # Mpc (comoving)
     vx = halodata[:,3]; vy = halodata[:,4]; vz = halodata[:,5] # km/sec
     chi      = np.sqrt(x**2+y**2+z**2)    # Mpc
@@ -229,7 +252,9 @@ def catalogue_to_map(halodata, nside=512, weight=1):
     ----------
 
     halodata : array
-        halo catalogue of size (Nhalo, 10)
+        halo catalogue of size (Nhalo, Ncol) where Ncol is at least 3
+        The columns should correspond to
+        0:x [Mpc], 1:y [Mpc], 2:z [Mpc]
     nside: int
         healpix nside of map created
     weight: str

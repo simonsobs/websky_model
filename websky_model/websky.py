@@ -52,7 +52,7 @@ class WebSky:
         self.u = u
         self.astropy_cosmo = FlatLambdaCDM(H0=self.websky_cosmo['h']*100, Om0=self.websky_cosmo['Omega_M'])
 
-    def load_halo_catalogue(self, mmin=0., mmax=np.inf, zmin=0., zmax=np.inf, rmin=0., rmax=np.inf, practical=True):
+    def load_halo_catalogue(self, mmin=0., mmax=np.inf, zmin=0., zmax=np.inf, rmin=0., rmax=np.inf, practical=True, Nmax=None):
         """load in peak patch dark matter halo catalogue
 
         Requires astropy if using distance to redshift calculations, or redshift cuts
@@ -80,6 +80,8 @@ class WebSky:
         
         # load catalogue header
         Nhalo            = np.fromfile(halo_catalogue_file, dtype=np.int32, count=1)[0]
+        if not(Nmax is None):
+            Nhalo = int(Nmax)
         RTHMAXin         = np.fromfile(halo_catalogue_file, dtype=np.float32, count=1)
         redshiftbox      = np.fromfile(halo_catalogue_file, dtype=np.float32, count=1)
         if self.verbose: print("\nNumber of Halos in full catalogue %d \n " % Nhalo)
@@ -153,38 +155,6 @@ class WebSky:
         return halodata
 
 
-    def catalogue_to_map(self, halodata, nside=512, weight=1):
-        """project halos into healpix map of size nside
-
-        Parameters
-        ----------
-
-        halodata : array
-            halo catalogue of size (Nhalo, 10)
-        nside: int
-            healpix nside of map created
-        weight: str
-            weighting to give halos when adding to map
-            possibilities: 1=number density, or array of size Nhalo for custom (e.g. mass) 
-
-        Returns
-        -------
-
-        map : np.array( (12 * nside**2))
-            healpy map of halos, with "flux" proportional to weight
-
-        """
-        # create empty healpy map
-        map = np.zeros(hp.nside2npix(nside))
-        
-        # get pixel id from halo x,y,z vector
-        pix = hp.vec2pix(nside, halodata[:,0], halodata[:,1], halodata[:,2])
-
-        # add flux to map 
-        np.add.at(map, pix, weight)
-
-        return map
-
     def cib_map_file_name(self, freq='545'):
         """get file name of cib map, given a frequency
 
@@ -243,3 +213,67 @@ class WebSky:
         
         return self.directory_path+self.websky_version+'/'+self.ksz_map_name
 
+
+def vrad(halodata):
+    """Get array of radial velocities in km/sec from halo catalogue
+
+    Parameters
+    ----------
+
+    halodata : array
+        halo catalogue of size (Nhalo, Ncol) where Ncol is at least 6
+        The columns should correspond to
+        0:x [Mpc], 1:y [Mpc], 2:z [Mpc], 3:vx [km/s], 4:vy [km/s], 5:vz [km/s]
+    nside: int
+        healpix nside of map created
+    weight: str
+        weighting to give halos when adding to map
+        possibilities: 1=number density, or array of size Nhalo for custom (e.g. mass) 
+
+    Returns
+    -------
+
+    vrad : np.array( Nhalo,)
+        Array of radial velocities in km/sec
+
+    """
+
+    x  = halodata[:,0];  y = halodata[:,1];  z = halodata[:,2] # Mpc (comoving)
+    vx = halodata[:,3]; vy = halodata[:,4]; vz = halodata[:,5] # km/sec
+    chi      = np.sqrt(x**2+y**2+z**2)    # Mpc
+    vrad     = (x*vx + y*vy + z*vz) / chi # km/sec
+    return vrad
+
+def catalogue_to_map(halodata, nside=512, weight=1):
+    """project halos into healpix map of size nside
+
+    Parameters
+    ----------
+
+    halodata : array
+        halo catalogue of size (Nhalo, Ncol) where Ncol is at least 3
+        The columns should correspond to
+        0:x [Mpc], 1:y [Mpc], 2:z [Mpc]
+    nside: int
+        healpix nside of map created
+    weight: str
+        weighting to give halos when adding to map
+        possibilities: 1=number density, or array of size Nhalo for custom (e.g. mass) 
+
+    Returns
+    -------
+
+    map : np.array( (12 * nside**2))
+        healpy map of halos, with "flux" proportional to weight
+
+    """
+    # create empty healpy map
+    map = np.zeros(hp.nside2npix(nside))
+
+    # get pixel id from halo x,y,z vector
+    pix = hp.vec2pix(nside, halodata[:,0], halodata[:,1], halodata[:,2])
+
+    # add flux to map 
+    np.add.at(map, pix, weight)
+
+    return map
